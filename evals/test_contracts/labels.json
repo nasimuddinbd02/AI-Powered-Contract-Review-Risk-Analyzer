@@ -1,0 +1,37 @@
+{
+  "_comment": "Ground-truth labels for retrieval + risk evaluation (SRS 4.6). Each query lists the page(s) whose chunks correctly answer it; risk_levels give the expected band per clause type. Extend to 20 contracts for full acceptance testing (SRS FR-6).",
+  "contracts": [
+    {
+      "file": "nda_acme.txt",
+      "queries": [
+        { "q": "How long does confidentiality last?", "relevant_pages": [1] },
+        { "q": "How much notice is needed to terminate?", "relevant_pages": [1] },
+        { "q": "Which state's law governs the agreement?", "relevant_pages": [1] },
+        { "q": "How are disputes resolved?", "relevant_pages": [1] },
+        { "q": "Is any IP license granted?", "relevant_pages": [1] }
+      ],
+      "risk_levels": {
+        "Confidentiality": "LOW",
+        "Termination": "LOW",
+        "Governing Law": "LOW",
+        "Dispute Resolution": "LOW"
+      }
+    },
+    {
+      "file": "msa_globex.txt",
+      "queries": [
+        { "q": "What is the cap on liability?", "relevant_pages": [1] },
+        { "q": "Who indemnifies whom?", "relevant_pages": [1] },
+        { "q": "What are the payment terms?", "relevant_pages": [1] },
+        { "q": "Does the contract auto-renew?", "relevant_pages": [1] },
+        { "q": "Who owns the intellectual property?", "relevant_pages": [1] }
+      ],
+      "risk_levels": {
+        "Liability Cap": "HIGH",
+        "Indemnification": "HIGH",
+        "IP Ownership": "MEDIUM",
+        "Auto-Renewal": "MEDIUM"
+      }
+    }
+  ]
+}

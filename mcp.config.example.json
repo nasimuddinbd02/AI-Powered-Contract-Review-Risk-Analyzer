@@ -1,0 +1,13 @@
+{
+  "//": "Example MCP host config (e.g. Claude Desktop) for the ContractIQ tool server.",
+  "mcpServers": {
+    "contractiq": {
+      "command": "python",
+      "args": ["-m", "contractiq.mcp_server.server"],
+      "env": {
+        "ANTHROPIC_API_KEY": "",
+        "OPENAI_API_KEY": ""
+      }
+    }
+  }
+}

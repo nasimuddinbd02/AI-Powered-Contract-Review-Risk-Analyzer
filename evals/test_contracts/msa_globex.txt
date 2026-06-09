@@ -1,0 +1,28 @@
+MASTER SERVICES AGREEMENT
+
+This Master Services Agreement ("Agreement") is made by and between Acme
+Corporation and Globex LLC ("Vendor"), effective as of January 1, 2026.
+
+1. PAYMENT TERMS
+Customer shall pay all invoices net 30 days. Late payments shall accrue a
+penalty and late fee of 1.5% per month on any overdue amount.
+
+2. LIMITATION OF LIABILITY
+In no event shall Vendor's aggregate liability exceed the fees paid in the prior
+twelve months. Notwithstanding the foregoing, Customer accepts unlimited
+liability for any breach, without limitation.
+
+3. INDEMNIFICATION
+Customer shall indemnify and hold harmless Vendor from any and all claims in
+Vendor's sole discretion.
+
+4. INTELLECTUAL PROPERTY
+All work product and intellectual property created under this Agreement shall be
+owned exclusively by Vendor, who assigns all right, title, and interest.
+
+5. AUTO-RENEWAL
+This Agreement shall automatically renew for successive one-year renewal terms
+unless terminated at least 60 days prior to the renewal date.
+
+6. GOVERNING LAW
+This Agreement shall be governed by the laws of the State of Delaware.

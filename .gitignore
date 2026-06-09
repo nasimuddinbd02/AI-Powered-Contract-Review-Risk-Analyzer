@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Env / secrets — ignore every .env variant, keep the example template
+.env
+.env.*
+!.env.example
+*.local
+
+# Vector store / uploads / ephemeral data
+.data/
+storage/
+*.faiss
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# OS / editor / local tooling
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.claude/

@@ -1,0 +1,14 @@
+[project]
+name = "contractiq"
+version = "1.0.0"
+description = "AI-Powered Contract Review & Risk Analyzer (see ContractIQ_SRS.docx)"
+requires-python = ">=3.10"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.setuptools.packages.find]
+include = ["contractiq*"]
