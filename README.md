@@ -61,7 +61,7 @@ wrapped in **JWT-secured** multi-user access.
 | **Frontend** | Next.js 15 (App Router) · React 18 · TypeScript · Tailwind CSS · shadcn/ui · Radix UI · lucide-react |
 | **Backend / API** | Python 3.10+ · FastAPI · Pydantic v2 · Uvicorn |
 | **AI & LLM** | OpenAI `gpt-4o-mini` (agents) · `text-embedding-3-small` (embeddings) · Anthropic Claude (optional) |
-| **Agents & RAG** | LangGraph-style orchestrator · Model Context Protocol (MCP) tool server · FAISS vector store · LangChain text-splitters |
+| **Agents & RAG** | LangGraph-style orchestrator · MCP tool server (`fastapi-mcp`) · FAISS vector store · LangChain text-splitters |
 | **Ingestion** | PyMuPDF (PDF parsing) · pytesseract (OCR fallback) |
 | **Reporting** | ReportLab (branded PDF export) |
 | **Auth & Data** | PyJWT (JWT bearer) · PBKDF2-HMAC-SHA256 (password hashing) · SQLite (user store) |
@@ -162,9 +162,11 @@ sequenceDiagram
   chunking, OpenAI embeddings, FAISS similarity index.
 - **🤖 Multi-agent analysis (FR-2…FR-5)** — orchestrator runs *clause extractor →
   risk scorer → plain-English → negotiator* with per-node error isolation.
-- **🧰 MCP tool server (FR-7)** — five structured tools exposed over **native MCP
-  and REST** (`extract_clauses`, `score_risk`, `lookup_legal_definition`,
-  `compare_clauses`, `get_industry_benchmark`).
+- **🧰 MCP tool server (FR-7)** — five structured tools (`extract_clauses`,
+  `score_risk`, `lookup_legal_definition`, `compare_clauses`,
+  `get_industry_benchmark`) exposed as a **real MCP server** at `/mcp` via
+  [`fastapi-mcp`](https://github.com/tadata-org/fastapi_mcp) — schemas are
+  auto-generated from the FastAPI endpoints, and the same tools are callable over plain REST.
 - **🔎 Grounded RAG Q&A (FR-6)** — top-5 cosine retrieval, conversation memory,
   and answers that cite the exact page; declines when the answer isn't in the document.
 - **📊 Professional dashboard (FR-8)** — shadcn/ui + Tailwind, light/dark mode,
@@ -220,7 +222,8 @@ docker compose up
 | `GET` | `/contracts` · `/contract/{id}` | List / fetch analysed contracts | 5.1 |
 | `POST` | `/chat/{id}` | Ask a question (RAG) | FR-6 |
 | `GET` | `/export/{id}` | Download PDF report | FR-9 |
-| `GET` | `/mcp/tools` · `/mcp/call` | List / invoke MCP tools | FR-7 |
+| `POST` | `/tools/{name}` | Call a tool over REST (5 FR-7 tools) | FR-7 |
+| — | `/mcp` | **Real MCP server** (Streamable HTTP, via `fastapi-mcp`) | FR-7 |
 | `GET` | `/traces` | Latency + token traces | 4.6 |
 
 ---
@@ -258,12 +261,22 @@ labelled contracts from `evals/test_contracts/`.
 
 ## 🧩 MCP server
 
-The five tools are mounted in the API at `/mcp` **and** can run as a native stdio
-MCP server for hosts like Claude Desktop (see [`mcp.config.example.json`](mcp.config.example.json)):
+The five FR-7 tools are defined once as FastAPI endpoints
+([`mcp_server/router.py`](contractiq/mcp_server/router.py)) and turned into a real
+**MCP server** at `/mcp` by [`fastapi-mcp`](https://github.com/tadata-org/fastapi_mcp)
+— no hand-written transport or JSON schemas. Tool schemas are generated from the
+endpoints' Pydantic models, so they can never drift from the implementation.
 
-```bash
-python -m contractiq.mcp_server.server
+Point any MCP host at the running server (see [`mcp.config.example.json`](mcp.config.example.json));
+for stdio-only hosts like Claude Desktop, bridge with `mcp-remote`:
+
+```jsonc
+// claude_desktop_config.json
+{ "mcpServers": { "contractiq": {
+  "command": "npx", "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"] } } }
 ```
+
+Verified with a live MCP client: `initialize` → `list_tools` (5 tools) → `call_tool`.
 
 ---
 
@@ -274,7 +287,7 @@ contractiq/
 ├── core/         config · models · OpenAI LLM + embeddings · FAISS · taxonomy
 ├── ingestion/    PyMuPDF parser · chunker · embedder            (FR-1)
 ├── rag/          retriever · Q&A agent                          (FR-6)
-├── mcp_server/   FastAPI/MCP server + 5 tools                   (FR-7)
+├── mcp_server/   5 tool fns + REST router → MCP via fastapi-mcp  (FR-7)
 ├── agents/       orchestrator + 4 specialist agents             (FR-2…FR-5)
 ├── auth/         JWT · PBKDF2 · SQLite user store + admin        (FR-4.4)
 ├── api/          FastAPI app + routes

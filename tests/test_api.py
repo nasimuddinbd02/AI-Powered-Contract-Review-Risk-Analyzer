@@ -17,11 +17,31 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
-def test_mcp_tools_listed():
-    r = client.get("/mcp/tools")
-    assert r.status_code == 200
-    names = {t["name"] for t in r.json()["tools"]}
-    assert {"extract_clauses", "score_risk", "compare_clauses"} <= names
+def test_mcp_server_exposes_five_tools():
+    # fastapi-mcp generated a real MCP server from the /tools endpoints.
+    mcp = app.state.mcp
+    names = {t.name for t in mcp.tools}
+    assert names == {
+        "extract_clauses", "score_risk", "lookup_legal_definition",
+        "compare_clauses", "get_industry_benchmark",
+    }
+    # Each tool advertises an input schema derived from its Pydantic model.
+    score = next(t for t in mcp.tools if t.name == "score_risk")
+    assert "clause_text" in score.inputSchema["properties"]
+
+
+def test_tool_endpoints_callable():
+    # Deterministic tool (no LLM) via the REST surface.
+    r = client.post("/tools/lookup_legal_definition", json={"term": "indemnification"})
+    assert r.status_code == 200, r.text
+    assert r.json()["definition"]
+    # LLM-backed tool runs through the fake LLM (autouse fixture).
+    r = client.post("/tools/score_risk", json={
+        "clause_text": "Customer accepts unlimited liability without limitation.",
+        "clause_type": "Liability Cap",
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["risk_level"] in ("HIGH", "MEDIUM", "LOW")
 
 
 def test_contract_routes_require_auth():

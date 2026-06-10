@@ -1,13 +1,11 @@
 {
-  "//": "Example MCP host config (e.g. Claude Desktop) for the ContractIQ tool server.",
+  "//": "Connect an MCP host (e.g. Claude Desktop) to the ContractIQ MCP server.",
+  "//start": "First run the API:  uvicorn contractiq.api.main:app --port 8000",
+  "//note": "ContractIQ exposes a Streamable HTTP MCP server at /mcp (via fastapi-mcp). mcp-remote bridges stdio hosts to it.",
   "mcpServers": {
     "contractiq": {
-      "command": "python",
-      "args": ["-m", "contractiq.mcp_server.server"],
-      "env": {
-        "ANTHROPIC_API_KEY": "",
-        "OPENAI_API_KEY": ""
-      }
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }

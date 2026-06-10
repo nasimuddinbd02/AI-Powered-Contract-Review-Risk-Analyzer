@@ -1,81 +1,44 @@
-"""MCP tool server entry point (SRS FR-7).
+"""MCP server wiring (SRS FR-7) — powered by ``fastapi-mcp``.
 
-Exposes the five structured tools two ways:
+Instead of hand-writing an MCP transport and JSON schemas, we let ``fastapi-mcp``
+turn the tool endpoints in :mod:`contractiq.mcp_server.router` into a real MCP
+server (Streamable HTTP) mounted at ``/mcp``. Schemas are generated from the
+endpoints' Pydantic models, so they can't drift from the implementation.
 
-1. **Native MCP** over stdio when the ``mcp`` SDK is installed
-   (``python -m contractiq.mcp_server.server``), so any MCP-capable agent/host
-   can call them.
-2. **REST** via a FastAPI sub-application mounted by the main API, so the
-   tools are callable over HTTP and unit-testable without an MCP host.
-
-Both paths share the same tool functions and schemas, guaranteeing identical
-behaviour. Every tool returns structured JSON; errors include ``error_message``.
+External MCP hosts (e.g. Claude Desktop) connect to ``http://<host>/mcp``.
 """
 from __future__ import annotations
 
-from typing import Any
-
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
 
 from ..core.logging import get_logger
-from .schemas import TOOL_SCHEMAS
-from .tools import TOOLS
 
 log = get_logger("mcp_server")
 
-
-# --- REST surface (mounted by the main API at /mcp) -------------------------
-
-router = APIRouter(prefix="/mcp", tags=["mcp"])
-
-
-class ToolCall(BaseModel):
-    name: str
-    arguments: dict[str, Any] = {}
+MCP_NAME = "ContractIQ"
+MCP_DESCRIPTION = (
+    "Legal contract analysis tools: clause extraction, risk scoring, plain-English "
+    "legal definitions, clause comparison, and industry benchmarks."
+)
 
 
-@router.get("/tools")
-def list_tools() -> dict:
-    """Advertise available tools and their JSON schemas (SRS FR-7)."""
-    return {
-        "tools": [
-            {"name": name, **TOOL_SCHEMAS[name]} for name in TOOLS if name in TOOL_SCHEMAS
-        ]
-    }
+def setup_mcp(app: FastAPI):
+    """Build and mount the MCP server from the app's ``tools``-tagged endpoints.
 
+    Must be called *after* the tools router is registered on ``app``. Returns the
+    ``FastApiMCP`` instance (also stored on ``app.state.mcp``) so callers/tests can
+    introspect the generated tools.
+    """
+    from fastapi_mcp import FastApiMCP
 
-@router.post("/call")
-def call_tool(call: ToolCall) -> dict:
-    """Invoke a tool by name with keyword arguments."""
-    fn = TOOLS.get(call.name)
-    if fn is None:
-        raise HTTPException(status_code=404, detail=f"Unknown tool: {call.name}")
-    try:
-        result = fn(**call.arguments)
-    except TypeError as exc:
-        raise HTTPException(status_code=422, detail=f"Invalid arguments: {exc}")
-    return {"tool": call.name, "result": result}
-
-
-# --- Native MCP server (stdio) ---------------------------------------------
-
-def run_stdio() -> None:  # pragma: no cover - requires mcp SDK + host
-    """Run as a native MCP server over stdio."""
-    try:
-        from mcp.server.fastmcp import FastMCP
-    except Exception as exc:
-        raise SystemExit(
-            "The 'mcp' SDK is not installed. Install it (`pip install mcp`) to run "
-            f"the native MCP server, or use the REST surface instead. ({exc})"
-        )
-
-    mcp = FastMCP("contractiq")
-    for name, fn in TOOLS.items():
-        mcp.tool(name=name, description=TOOL_SCHEMAS.get(name, {}).get("description", ""))(fn)
-    log.info("Starting ContractIQ MCP server (stdio) with %d tools", len(TOOLS))
-    mcp.run()
-
-
-if __name__ == "__main__":  # pragma: no cover
-    run_stdio()
+    mcp = FastApiMCP(
+        app,
+        name=MCP_NAME,
+        description=MCP_DESCRIPTION,
+        include_tags=["tools"],  # expose only the 5 FR-7 tools as MCP tools
+    )
+    mcp.mount_http()  # Streamable HTTP transport at /mcp
+    app.state.mcp = mcp
+    log.info("Mounted MCP server '%s' at /mcp with %d tools: %s",
+             MCP_NAME, len(mcp.tools), ", ".join(t.name for t in mcp.tools))
+    return mcp

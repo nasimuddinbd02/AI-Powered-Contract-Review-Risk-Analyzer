@@ -55,9 +55,7 @@ def main() -> int:
     if a["warnings"]:
         print("  warnings:", a["warnings"])
 
-    hr("3. MCP TOOLS (FR-7)")
-    tools = c.get(f"{BASE}/mcp/tools").json()["tools"]
-    print(f"  advertised: {[t['name'] for t in tools]}")
+    hr("3. MCP TOOLS (FR-7) — real MCP server mounted at /mcp via fastapi-mcp")
     calls = [
         ("score_risk", {"clause_text": "Customer accepts unlimited liability without limitation.", "clause_type": "Liability Cap"}),
         ("lookup_legal_definition", {"term": "indemnification"}),
@@ -65,7 +63,7 @@ def main() -> int:
         ("compare_clauses", {"clause_a": "Liability is capped at fees paid.", "clause_b": "Unlimited liability without limitation."}),
     ]
     for name, args in calls:
-        r = c.post(f"{BASE}/mcp/call", json={"name": name, "arguments": args}).json()["result"]
+        r = c.post(f"{BASE}/tools/{name}", json=args).json()
         preview = {k: r[k] for k in list(r)[:2]}
         print(f"   - {name:<24} -> {preview}")
 

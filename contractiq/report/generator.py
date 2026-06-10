@@ -140,24 +140,24 @@ def _html_report(contract: Contract) -> str:
         for c in contract.clauses
     )
     return f"""<!doctype html><html><head><meta charset="utf-8">
-<title>ContractIQ Report — {html.escape(contract.filename)}</title>
-<style>body{{font-family:Arial,sans-serif;margin:40px;color:#222}}
-h1{{color:#1f3a93}} table{{border-collapse:collapse;width:100%}}
-td,th{{border:1px solid #ccc;padding:6px;font-size:13px;text-align:left}}
-th{{background:#1f3a93;color:#fff}} pre{{white-space:pre-wrap;background:#f6f6f6;padding:8px}}</style>
-</head><body>
-<h1>ContractIQ</h1><p>AI-Powered Contract Review &amp; Risk Analysis</p>
-<h2>Cover</h2>
-<p><b>File:</b> {html.escape(contract.filename)}<br>
-<b>Type:</b> {html.escape(contract.contract_type)}<br>
-<b>Parties:</b> {html.escape(', '.join(contract.parties) or 'Not detected')}<br>
-<b>Governing law:</b> {html.escape(contract.governing_law)}<br>
-<b>Overall risk score:</b> {contract.overall_risk_score}/100</p>
-<h1>Clause-by-Clause Analysis</h1>
-<table><tr><th>Clause Type</th><th>Risk</th><th>Score</th><th>Plain-English Summary</th></tr>{rows}</table>
-<h1>Negotiation Suggestions</h1>{suggestions}
-<h1>Appendix — Original Clause Text</h1>{appendix}
-</body></html>"""
+                <title>ContractIQ Report — {html.escape(contract.filename)}</title>
+                <style>body{{font-family:Arial,sans-serif;margin:40px;color:#222}}
+                h1{{color:#1f3a93}} table{{border-collapse:collapse;width:100%}}
+                td,th{{border:1px solid #ccc;padding:6px;font-size:13px;text-align:left}}
+                th{{background:#1f3a93;color:#fff}} pre{{white-space:pre-wrap;background:#f6f6f6;padding:8px}}</style>
+                </head><body>
+                <h1>ContractIQ</h1><p>AI-Powered Contract Review &amp; Risk Analysis</p>
+                <h2>Cover</h2>
+                <p><b>File:</b> {html.escape(contract.filename)}<br>
+                <b>Type:</b> {html.escape(contract.contract_type)}<br>
+                <b>Parties:</b> {html.escape(', '.join(contract.parties) or 'Not detected')}<br>
+                <b>Governing law:</b> {html.escape(contract.governing_law)}<br>
+                <b>Overall risk score:</b> {contract.overall_risk_score}/100</p>
+                <h1>Clause-by-Clause Analysis</h1>
+                <table><tr><th>Clause Type</th><th>Risk</th><th>Score</th><th>Plain-English Summary</th></tr>{rows}</table>
+                <h1>Negotiation Suggestions</h1>{suggestions}
+                <h1>Appendix — Original Clause Text</h1>{appendix}
+                </body></html>"""
 
 
 def _risk_counts(contract: Contract) -> dict[str, int]:

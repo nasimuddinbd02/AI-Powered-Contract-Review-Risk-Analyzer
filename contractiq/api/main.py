@@ -1,7 +1,7 @@
 """FastAPI application entry point (SRS 2.3).
 
-Wires CORS, the MCP tool router, and the upload/analyze/chat/export routes into
-a single stateless app. Run with::
+Wires CORS, the auth/contract routes, and the tool endpoints — which are then
+auto-exposed as a real MCP server at ``/mcp`` via ``fastapi-mcp``. Run with::
 
     uvicorn contractiq.api.main:app --reload --port 8000
 """
@@ -15,7 +15,8 @@ from ..core.llm import get_llm
 from ..core.embeddings import get_embedder
 from ..core.logging import TRACES, get_logger
 from ..auth.routes import auth_router, users_router
-from ..mcp_server.server import router as mcp_router
+from ..mcp_server.router import router as tools_router
+from ..mcp_server.server import setup_mcp
 from .routes import analyze, chat, export, upload
 
 log = get_logger("api.main")
@@ -41,7 +42,11 @@ app.include_router(upload.router)
 app.include_router(analyze.router)
 app.include_router(chat.router)
 app.include_router(export.router)
-app.include_router(mcp_router)
+app.include_router(tools_router)  # the 5 FR-7 tools as REST endpoints
+
+# Expose the tools as a real MCP server at /mcp (fastapi-mcp). Must run after the
+# tools router is registered so the operations are present in the OpenAPI schema.
+setup_mcp(app)
 
 
 @app.get("/health", tags=["meta"])

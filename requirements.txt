@@ -7,9 +7,13 @@ pydantic-settings>=2.2
 python-multipart>=0.0.9
 httpx>=0.27
 
-# LLM + embeddings (optional at runtime; code falls back to mock mode if absent/no key)
+# LLM + embeddings (real AI; OPENAI_API_KEY required, Anthropic optional)
 anthropic>=0.39
 openai>=1.30
+
+# MCP — fastapi-mcp turns the /tools endpoints into a real MCP server at /mcp
+# (pulls in the `mcp` SDK + sse-starlette as transitive deps).
+fastapi-mcp>=0.4
 
 # Ingestion / RAG (optional; pure-python fallbacks exist)
 PyMuPDF>=1.24          # import name: fitz
